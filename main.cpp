@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
         // Check that the custom directory really exists
         if (!BaseDir.exists()) {
-            Stderr << QString("The specified dircetory doesn't exist: ").arg(BaseDir.absolutePath()) << endl;
+            Stderr << "The specified directory doesn't exist: " << BaseDir.absolutePath() << endl;
             return ERROR_INVALID_DIRECTORY;
         }
     }
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         }
 
         // Ask a confirmation from the user
-        Stdout << endl << "Do you want to delete these files? [Y/N]" << endl;
+        Stdout << endl << QString("Do you want to delete these %1 files? [Y/N]").arg(Candidates.count()) << endl;
         QString Input = Stdin.readLine(1);
 
         // Process depends on confirmation
