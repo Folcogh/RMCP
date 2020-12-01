@@ -104,14 +104,23 @@ int main(int argc, char *argv[])
 
         // Process depends on confirmation
         if ((Input == "y") || (Input == "Y")) {
+            unsigned int Fail = 0;
             for (int i = 0; i < Candidates.count(); i++) {
                 QString Filename = Candidates.at(i);
                 Stdout << "Deleting file: " << Filename << endl;
                 if (!QFile::remove(Filename)) {
                     Stderr << "Couldn't remove file:" << Filename << endl;
+                    Fail ++;
                 }
             }
-            Stdout << "All files deleted" << endl;
+            
+            // Print process summary
+            if (Fail == 0) {
+                Stdout << "All files deleted" << endl;
+            }
+            else {
+                Stdout << QString("%1 files couldn't be deleted").arg(Fail) << endl;
+            }
         }
         else {
             Stdout << "Process cancelled by user" << endl;
