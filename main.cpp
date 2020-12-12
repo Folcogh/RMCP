@@ -28,10 +28,12 @@
 #include <QFileInfoList>
 #include <QString>
 #include <QStringList>
-#include <QTextStream>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
+    // Verbosity
+    bool Verbose = false;
+
     // Create output streams
     QTextStream Stdin(stdin);
     QTextStream Stdout(stdout);
@@ -53,7 +55,8 @@ int main(int argc, char *argv[])
     QCommandLineParser Parser;
     Parser.addHelpOption();
     Parser.addVersionOption();
-    Parser.addOption({{OPTION_PATTERN_SHORT_STR, OPTION_PATTERN_LONG_STR}, "specify the string which triggers file deletion", "pattern"});
+    Parser.addOption({{OPTION_PATTERN_SHORT_STR, OPTION_PATTERN_LONG_STR}, "Specify the string which triggers file deletion", "pattern"});
+    Parser.addOption({{OPTION_VERBOSE_SHORT_STR, OPTION_VERBOSE_LONG_STR}, "Enable verbosity (debugging purpose)"});
     Parser.addOption({{OPTION_DIRECTORY_SHORT_STR, OPTION_DIRECTORY_LONG_STR},
                       "Set the root directory of the cleaning process. Use the current directory if unspecified",
                       "directory"});
@@ -65,11 +68,23 @@ int main(int argc, char *argv[])
                                      "You can change the root directory of the process with the 'directory' option");
     Parser.process(App);
 
+    // Check if verbosity is set
+    if (Parser.isSet(OPTION_VERBOSE_SHORT_STR)) {
+        Verbose = true;
+    }
+
     // Check if a custom directory has been set
     // Default directory is the current one
     QDir BaseDir(QDir::current());
+    if (Verbose) {
+        Stdout << "Setting default process directory: " << BaseDir.path() << endl;
+    }
+
     if (Parser.isSet(OPTION_DIRECTORY_SHORT_STR)) {
         BaseDir.setPath(Parser.value(OPTION_DIRECTORY_SHORT_STR));
+        if (Verbose) {
+            Stdout << "--directory option set, new process directory is: " << BaseDir.path() << endl;
+        }
 
         // Check that the custom directory really exists
         if (!BaseDir.exists()) {
@@ -80,13 +95,20 @@ int main(int argc, char *argv[])
 
     // Check if a custom pattern string has been set
     QString Pattern = DEFAULT_PATTERN_STRING;
+    if (Verbose) {
+        Stdout << "Default pattern set: " << Pattern << endl;
+    }
+
     if (Parser.isSet(OPTION_PATTERN_SHORT_STR)) {
         Pattern = Parser.value(OPTION_PATTERN_SHORT_STR);
+        if (Verbose) {
+            Stdout << "--pattern option set, new pattern is: " << Pattern << endl;
+        }
     }
 
     // Get the list of files to delete
     QStringList Candidates;
-    parseDirectory(BaseDir, QString("*%1*").arg(Pattern), Candidates);
+    parseDirectory(BaseDir, QString("*%1*").arg(Pattern), Candidates, Verbose ? &Stdout : nullptr);
 
     //  Process files
     if (Candidates.isEmpty()) {
@@ -130,8 +152,13 @@ int main(int argc, char *argv[])
     return NO_ERROR;
 }
 
-void parseDirectory(QDir directory, QString filter, QStringList& candidates)
+void parseDirectory(QDir directory, QString filter, QStringList& candidates, QTextStream* out)
 {
+    // Verbosity
+    if (out != nullptr) {
+        *out << "Parsing: " << directory.path() << endl;
+    }
+
     // Prepare directory parsing
     directory.setNameFilters({filter});
     directory.setSorting(QDir::DirsLast);
@@ -146,7 +173,7 @@ void parseDirectory(QDir directory, QString filter, QStringList& candidates)
         }
         else {
             directory.setPath(FileInfo.absoluteFilePath());
-            parseDirectory(directory, filter, candidates);
+            parseDirectory(directory, filter, candidates, out);
         }
     }
 }

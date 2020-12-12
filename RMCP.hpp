@@ -24,9 +24,10 @@
 #include <QDir>
 #include <QString>
 #include <QStringList>
+#include <QTextStream>
 
 // Application
-#define VERSION_STR "1.0"
+#define VERSION_STR "1.3"
 #define APPLICATION_NAME "RemoveCopy"
 #define DEFAULT_PATTERN_STRING " - Copie." // Yes, it's in French. Hi Yannis ;)
 #define EXECUTABLE_NAME "RMCP"
@@ -34,13 +35,17 @@
 // Options
 #define OPTION_PATTERN_SHORT_STR "p"
 #define OPTION_PATTERN_LONG_STR "pattern"
+
 #define OPTION_DIRECTORY_SHORT_STR "d"
 #define OPTION_DIRECTORY_LONG_STR "directory"
+
+#define OPTION_VERBOSE_SHORT_STR "e"
+#define OPTION_VERBOSE_LONG_STR "verbose"
 
 // Errors
 typedef enum { NO_ERROR, ERROR_INVALID_DIRECTORY } ERROR;
 
 // Functions
-void parseDirectory(QDir directory, QString filter, QStringList& candidates);
+void parseDirectory(QDir directory, QString filter, QStringList& candidates, QTextStream* out);
 
 #endif // VERSION_HPP
